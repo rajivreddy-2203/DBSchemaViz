@@ -4,7 +4,7 @@ __pycache__/
 .venv/
 .env
 instance/
-database_relationships.db
+database_relationships.db*
 build/
 dist/
 pyinstaller-build.log
