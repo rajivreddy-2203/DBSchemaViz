@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}{{ connection.name }} · Relationship Atlas{% endblock %}
+{% block navigation %}{% if connection.is_windchill %}<a href="{{ url_for('relationships_page', connection_id=connection.id) }}">Windchill analysis</a>{% endif %}{% endblock %}
+{% block content %}
+<main class="dashboard" data-connection-id="{{ connection.id }}" data-windchill="{{ 'true' if connection.is_windchill else 'false' }}">
+  <section class="toolbar">
+    <div class="connection-title"><span class="eyebrow">{{ connection.database_type|upper }}{% if connection.is_windchill %} · WINDCHILL{% endif %}</span><h1>{{ connection.name }}</h1></div>
+    <div class="toolbar-stats"><span><b id="table-count">{{ stats.tables }}</b> tables</span><span><b id="relationship-count">{{ stats.relationships }}</b> relationships</span><span id="unresolved-stat" {% if not stats.unresolved %}class="hidden"{% endif %}><b>{{ stats.unresolved }}</b> unresolved</span></div>
+    <div class="toolbar-actions"><button id="refresh-button" class="button secondary">Refresh metadata</button><button id="rebuild-button" class="button secondary">Rebuild relationships</button><button id="reset-layout" class="button secondary">Reset layout</button><button id="fit-button" class="button secondary">Fit all</button><button id="zoom-in" class="icon-button" title="Zoom in">+</button><button id="zoom-out" class="icon-button" title="Zoom out">−</button></div>
+  </section>
+  <section class="workspace">
+    <aside class="left-sidebar">
+      <label class="search-label">Search tables, columns, or classes<input id="search-input" autocomplete="off" placeholder="EPMDocument, idA3…, wt.team…"></label>
+      <div id="search-results" class="search-results"></div>
+      <div class="filter-group"><h2>Relationship filters</h2>
+        {% if connection.is_windchill %}
+          <label class="checkbox"><input class="edge-filter" type="checkbox" value="WINDCHILL_CLASSNAME" checked> Classname relationships</label>
+          <label class="checkbox"><input class="edge-filter" type="checkbox" value="WINDCHILL_ROLE_A" checked> Role A relationships</label>
+          <label class="checkbox"><input class="edge-filter" type="checkbox" value="WINDCHILL_ROLE_B" checked> Role B relationships</label>
+          <label class="checkbox"><input class="edge-filter" type="checkbox" value="WINDCHILL_MASTER_REFERENCE" checked> Master relationships</label>
+        {% else %}
+          <label class="checkbox"><input class="edge-filter" type="checkbox" value="PK_FK" checked> Physical PK / FK</label>
+        {% endif %}
+        <label class="checkbox"><input id="unresolved-filter" type="checkbox"> Show unresolved list</label>
+      </div>
+      <div class="filter-group"><h2>When a table is selected</h2>
+        <label class="checkbox"><input type="radio" name="direction" value="both" checked> Show both directions</label>
+        <label class="checkbox"><input type="radio" name="direction" value="outgoing"> Outgoing only</label>
+        <label class="checkbox"><input type="radio" name="direction" value="incoming"> Incoming only</label>
+      </div>
+      <div class="legend"><h2>Legend</h2>{% if connection.is_windchill %}<p><span class="line windchill"></span> Windchill logical relationship</p><p><span class="line role"></span> Role A / Role B relationship</p><p><span class="line master"></span> Master relationship</p>{% else %}<p><span class="line physical"></span> Primary key / foreign key</p>{% endif %}<p>Column labels appear beside relationship lines.</p></div>
+      {% if connection.is_windchill %}<section id="windchill-analysis" class="windchill-mini"><h2>Windchill analysis</h2><div class="loading">Loading analysis…</div></section>{% endif %}
+    </aside>
+    <section class="graph-wrap"><div id="graph" aria-label="Interactive relationship graph"></div><div id="graph-status" class="graph-status">Loading relationship graph…</div><div id="graph-pagination" class="graph-pagination hidden"><button id="previous-page" class="button secondary" type="button">Previous</button><span id="page-label"></span><button id="next-page" class="button secondary" type="button">Next</button></div></section>
+    <aside id="details-panel" class="details-panel"><div class="detail-empty"><span>◎</span><h2>Select a table or relationship</h2><p>Click a card to inspect columns and incoming/outgoing links.</p></div></aside>
+  </section>
+</main>
+<script src="https://unpkg.com/cytoscape@3.30.2/dist/cytoscape.min.js"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+.env
+instance/
+database_relationships.db
+build/
+dist/
+pyinstaller-build.log
+tests/

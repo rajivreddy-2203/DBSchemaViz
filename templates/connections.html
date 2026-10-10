@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Connections · Relationship Atlas{% endblock %}
+{% block content %}
+<main class="connections-page">
+  <section class="intro">
+    <p class="eyebrow">DATABASE RELATIONSHIP ATLAS</p>
+    <h1>Map physical and Windchill logical relationships.</h1>
+    <p>Saved passwords are encrypted locally. Metadata is cached in SQLite; source business data is not copied.</p>
+  </section>
+  <div class="connections-grid">
+    <section class="panel connection-form-panel">
+      <h2>Add connection</h2>
+      <form action="{{ url_for('create_connection') }}" method="post" class="connection-form">
+        <label>Connection name<input required name="name" maxlength="150" placeholder="Windchill PROD"></label>
+        <label>Database type
+          <select name="database_type" id="database-type">
+            <option value="oracle">Oracle</option><option value="sqlserver">Microsoft SQL Server</option>
+          </select>
+        </label>
+        <div class="two-columns">
+          <label>Host<input required name="host" placeholder="db.example.internal"></label>
+          <label>Port <span class="muted">blank for named SQL Server instances</span><input type="number" min="1" max="65535" name="port" value="1521"></label>
+        </div>
+        <label class="oracle-only">Oracle Service Name <span class="muted">or use SID below</span><input name="service_name" placeholder="ORCLPDB1"></label>
+        <label class="database-name">Database / Oracle SID<input name="database_name" placeholder="Windchill"></label>
+        <label class="sqlserver-only hidden">SQL Server instance <span class="muted">optional</span><input name="instance_name" placeholder="MSSQLSERVER"></label>
+        <label>Default schema <span class="muted">optional</span><input name="default_schema" placeholder="WT"></label>
+        <div class="two-columns">
+          <label>Username<input required name="username" autocomplete="username"></label>
+          <label>Password<input required type="password" name="password" autocomplete="new-password"></label>
+        </div>
+        <label class="checkbox"><input type="checkbox" name="is_windchill"> <span>This is a Windchill database</span></label>
+        <p class="hint">Windchill mode discovers logical class, Role A/B, and master references only; standard mode discovers physical PK/FK links.</p>
+        <button class="button primary" type="submit">Save and extract metadata</button>
+      </form>
+    </section>
+    <section class="saved-connections">
+      <div class="section-heading"><h2>Saved connections</h2><span>{{ connections|length }} total</span></div>
+      {% if connections %}
+        <div class="connection-list">
+        {% for item in connections %}
+          <article class="connection-card">
+            <div><h3>{{ item.connection.name }}</h3><p>{{ item.connection.database_type|upper }} · {{ item.connection.host }}{% if item.connection.port %}:{{ item.connection.port }}{% endif %}</p></div>
+            <div class="badges"><span class="badge">{{ 'Windchill' if item.connection.is_windchill else 'Standard DB' }}</span>{% if item.run %}<span class="badge {{ item.run.status }}">{{ item.run.status }}</span>{% endif %}</div>
+            <div class="card-stats"><span>{{ item.stats.tables }} tables</span><span>{{ item.stats.relationships }} links</span>{% if item.stats.unresolved %}<span>{{ item.stats.unresolved }} unresolved</span>{% endif %}</div>
+            <a class="button secondary" href="{{ url_for('dashboard', connection_id=item.connection.id) }}">Open map</a>
+          </article>
+        {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state"><p>No saved connections yet.</p><p>Configure an Oracle or SQL Server database to start building a local metadata map.</p></div>
+      {% endif %}
+    </section>
+  </div>
+</main>
+<script>
+  const type = document.getElementById('database-type');
+  const port = document.querySelector('[name="port"]');
+  function toggleDatabaseFields() {
+    const isSqlServer = type.value === 'sqlserver';
+    document.querySelector('.oracle-only').classList.toggle('hidden', isSqlServer);
+    document.querySelector('.sqlserver-only').classList.toggle('hidden', !isSqlServer);
+    port.value = isSqlServer ? '' : 1521;
+  }
+  type.addEventListener('change', toggleDatabaseFields); toggleDatabaseFields();
+</script>
+{% endblock %}

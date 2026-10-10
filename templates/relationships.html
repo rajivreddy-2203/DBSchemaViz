@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Windchill relationship analysis · {{ connection.name }}{% endblock %}
+{% block navigation %}<a href="{{ url_for('dashboard', connection_id=connection.id) }}">Back to map</a>{% endblock %}
+{% block content %}
+<main class="analysis-page" data-connection-id="{{ connection.id }}">
+  <section class="analysis-header"><p class="eyebrow">WINDCHILL LOGICAL RELATIONSHIPS</p><h1>{{ connection.name }}</h1><p>Relationships resolved from classnamekey columns, their verified ida counterparts, and classnameA2A2 mappings.</p></section>
+  <section class="analysis-tabs"><button class="tab active" data-tab="relationships">Resolved relationships</button><button class="tab" data-tab="classes">Class mappings</button><button class="tab" data-tab="unresolved">Unresolved</button><input id="analysis-search" placeholder="Filter this list"></section>
+  <section id="analysis-content" class="analysis-content"><p class="loading">Loading Windchill analysis…</p></section>
+</main>
+<script src="{{ url_for('static', filename='js/relationships.js') }}"></script>
+{% endblock %}
